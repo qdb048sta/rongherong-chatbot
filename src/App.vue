@@ -23,28 +23,30 @@
         ])
       "
     >
-      <div v-for="message in messages" :slot="'message_' + message._id">
-        <!-- <p class="message-nickname">
-          {{ message.date }} {{ message.username }}
-        </p> -->
+      <div v-for="message in messages" :slot="'message_' + message._id" class="message-container">
         <p class="message-classic">{{ message.content }}</p>
-        <el-select v-model="value" placeholder="Select">
-          <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          >
-          </el-option>
-        </el-select>
+        <div class="message-actions">
+          <div class="buttons">
+            <el-button type="text" @click="handleYesClick">Yes</el-button>
+            <el-button type="text" @click="handleNoClick">No</el-button>
+          </div>
+          <el-select v-model="selectedOption" placeholder="Select" class="dropdown" @change="handleSelectChange">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </div>
       </div>
     </vue-advanced-chat>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import { register } from "vue-advanced-chat";
-// import { register } from '../../vue-advanced-chat/dist/vue-advanced-chat.es.js'
 register();
 
 export default {
@@ -64,6 +66,7 @@ export default {
       ],
       messages: [],
       messagesLoaded: false,
+      selectedOption: null,
       options: [
         {
           value: "Option1",
@@ -101,7 +104,6 @@ export default {
           this.messages = [...this.addMessages(), ...this.messages];
           this.messagesLoaded = true;
         }
-        // this.addNewMessage()
       });
     },
 
@@ -135,22 +137,38 @@ export default {
       ];
     },
 
-    addNewMessage() {
-      setTimeout(() => {
-        this.messages = [
-          ...this.messages,
-          {
-            _id: this.messages.length,
-            content: "NEW MESSAGE",
-            senderId: "1234",
-            timestamp: new Date().toString().substring(16, 21),
-            date: new Date().toDateString(),
-          },
-        ];
-      }, 2000);
-    },
     msgHandler(event) {
       console.log("msgHandler", event);
+    },
+
+    async handleYesClick() {
+      console.log("Yes button clicked");
+      try {
+        const response = await axios.post('/your-api-endpoint', { action: 'yes' });
+        console.log('Response:', response.data);
+      } catch (error) {
+        console.error('Error sending yes request:', error);
+      }
+    },
+
+    async handleNoClick() {
+      console.log("No button clicked");
+      try {
+        const response = await axios.post('/your-api-endpoint', { action: 'no' });
+        console.log('Response:', response.data);
+      } catch (error) {
+        console.error('Error sending no request:', error);
+      }
+    },
+
+    async handleSelectChange(value) {
+      console.log("Option selected:", value);
+      try {
+        const response = await axios.post('/your-api-endpoint', { selectedOption: value });
+        console.log('Response:', response.data);
+      } catch (error) {
+        console.error('Error sending select request:', error);
+      }
     },
   },
 };
@@ -160,6 +178,11 @@ export default {
 body {
   font-family: "Quicksand", sans-serif;
 }
+
+.message-container {
+  margin-bottom: 10px; // Add some space between messages if needed
+}
+
 .message-classic {
   position: relative;
   left: 3px;
@@ -168,7 +191,6 @@ body {
   display: block;
   padding: 9px 12px;
   font-size: 14px;
-  // color: #333333;
   border-radius: 5px;
   white-space: pre-line;
   word-break: break-all;
@@ -183,17 +205,27 @@ body {
     border-style: solid;
 
     left: -10px;
-    // border-color: transparent rgba(255, 255, 255, 0.8) transparent transparent;
     border-color: transparent rgba(55, 126, 200, 0.8) transparent transparent;
   }
 }
-// BUG: NOT WORKING this way!!!
-.vac-offset-current {
-  .message-classic::before {
-    right: -10px;
-    border-color: transparent transparent transparent rgba(55, 126, 200, 0.8);
-  }
+
+.message-actions {
+  display: flex;
+  flex-direction: column; /* Arrange elements in a column */
+  align-items: center; /* Center the content horizontally */
+  margin-top: 10px; /* Add space between the message and actions */
 }
+
+.buttons {
+  display: flex;
+  gap: 10px; /* Space between the buttons */
+  margin-bottom: 10px; /* Space between buttons and dropdown */
+}
+
+.dropdown {
+  width: 150px; /* Adjust width if needed */
+}
+
 .message-nickname {
   color: #777777;
   font-size: 12px;
